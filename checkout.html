@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WPL4QEYJ0K"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-WPL4QEYJ0K', { debug_mode: true });
+  </script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout | Everyday Tech</title>
+  <meta name="description" content="Review your Everyday Tech cart and checkout.">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #202a35; background: #f5f6f8; }
+    header { background: #204363; color: white; padding: 19px 0; }
+    .container { width: min(960px, calc(100% - 32px)); margin: auto; }
+    .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .brand { color: #fff; font-size: 23px; text-decoration: none; font-weight: bold; }
+    .cart { background: #fff; color: #204363; border: 0; border-radius: 4px; padding: 10px 14px; font-weight: bold; text-decoration: none; }
+    h1 { font-size: 30px; margin: 38px 0 9px; }
+    .subtitle { color: #66717a; margin: 0 0 28px; }
+    button { cursor: pointer; font: inherit; }
+    .buy { background: #2567a6; color: white; border: none; border-radius: 4px; padding: 11px 15px; }
+    .buy:disabled { opacity: .55; cursor: not-allowed; }
+    .panel { background: white; border: 1px solid #dce1e5; border-radius: 5px; padding: 20px; max-width: 650px; }
+    .line { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid #e4e8eb; }
+    .total { display: flex; justify-content: space-between; margin: 20px 0; font-weight: bold; font-size: 18px; }
+    .message { min-height: 24px; margin-top: 22px; color: #246449; }
+    .back { display: inline-block; margin-top: 17px; color: #2567a6; }
+    footer { padding: 38px 0 24px; margin-top: 32px; font-size: 13px; color: #6c7680; }
+    @media (max-width: 720px) { h1 { font-size: 25px; } }
+  </style>
+</head>
+<body>
+  <header><div class="container head">
+    <a href="index.html" class="brand">Everyday Tech</a>
+    <span class="cart">Cart: <span id="cart-count">0</span></span>
+  </div></header>
+  <main class="container">
+    <h1>Checkout</h1>
+    <p class="subtitle">Review your items before placing your order.</p>
+    <section class="panel" aria-label="Order summary">
+      <h2>Order summary</h2>
+      <div id="items"></div>
+      <div class="total" id="total"></div>
+      <button id="place-order" class="buy" type="button">Place demo order</button>
+      <p class="message" id="message" aria-live="polite"></p>
+      <a class="back" href="index.html">Continue shopping</a>
+    </section>
+  </main>
+  <footer class="container">Everyday Tech · Product listings are illustrative. No purchases are processed.</footer>
+  <script>
+    const products = [
+      { id: 'usb64', name: '64GB USB Flash Drive', price: 19.95, category: 'Storage' },
+      { id: 'mouse01', name: 'Wireless Mouse', price: 29.95, category: 'Accessories' },
+      { id: 'headphone01', name: 'Over-Ear Headphones', price: 49.95, category: 'Audio' }
+    ];
+    const cart = JSON.parse(sessionStorage.getItem('everydayTechCart') || '{}');
+    const selected = products.filter(p => Number(cart[p.id]) > 0);
+    const items = selected.map(p => ({
+      item_id: p.id, item_name: p.name, item_category: p.category,
+      price: p.price, quantity: Number(cart[p.id])
+    }));
+    const count = items.reduce((sum, item) => sum + item.quantity, 0);
+    const value = Math.round(items.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100) / 100;
+    document.getElementById('cart-count').textContent = count;
+    const itemsContainer = document.getElementById('items');
+    const orderButton = document.getElementById('place-order');
+    if (!items.length) {
+      itemsContainer.textContent = 'Your cart is empty.';
+      document.getElementById('total').textContent = '';
+      orderButton.disabled = true;
+    } else {
+      selected.forEach(p => {
+        const line = document.createElement('div');
+        line.className = 'line';
+        const name = document.createElement('span');
+        name.textContent = `${p.name} × ${cart[p.id]}`;
+        const amount = document.createElement('span');
+        amount.textContent = `$${(p.price * cart[p.id]).toFixed(2)}`;
+        line.append(name, amount);
+        itemsContainer.appendChild(line);
+      });
+      document.getElementById('total').innerHTML = `<span>Total</span><span>$${value.toFixed(2)}</span>`;
+      gtag('event', 'view_cart', {currency: 'AUD', value, items});
+      gtag('event', 'begin_checkout', {currency: 'AUD', value, items});
+    }
+    orderButton.addEventListener('click', () => {
+      if (!items.length) return;
+      gtag('event', 'purchase', {
+        transaction_id: `DEMO-${Date.now()}`,
+        currency: 'AUD', value, items
+      });
+      sessionStorage.removeItem('everydayTechCart');
+      document.getElementById('cart-count').textContent = '0';
+      document.getElementById('message').textContent = 'Demo order placed successfully. No payment was taken.';
+      orderButton.disabled = true;
+    });
+  </script>
+</body>
+</html>
